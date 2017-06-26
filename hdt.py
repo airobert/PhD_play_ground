@@ -121,19 +121,23 @@ np.random.seed(123)
 #     return ['a', 'b', 'c', 'd', 'e']
 
 def find_neighbours(node_name):
-    query = dirname + HDT_CMD_HDTSEARCH + ' -q' + '\'' + node_name + ' ? ?\' ' + hdt_file
+    query1 = dirname + HDT_CMD_HDTSEARCH + ' -q' + '\'' + node_name + ' ? ?\' ' + hdt_file
     # print ('\nquery1 = ', query)
-    rst = commands.getoutput(query) # this only works for Python 2.6! 
+    rst = commands.getoutput(query1) # this only works for Python 2.6! 
     # print ('\n\nsystem output = ', rst)
     # print (len(rst))
     # print (rst[1200])
     rst = ''.join(rst)
-    all = rst.split('\r')[-1]
-    neighbours = all.split('\n')[0:-2]
+    all1 = rst.split('\r')[-1]
+    neighbours1 = all1.split('\n')[0:-2]
+    neighbours1 = filter(lambda x: '"' not in x, neighbours1)
+
     def f (x): return x.split(' ')[2]
+    def p (x): return x.split(' ')[1]
     # nb = map(f, neighbours)
     # print('neighbours = ', nb)
-    clean_neighbours1 = filter(lambda x: '"' not in x, map(f, neighbours))
+    clean_neighbours1 =  map(f, neighbours1)
+    predicates1 =  map(p, neighbours1)
      # for now , simply remove those that has STRINGs or other strange dataypes
     # print ('clean neighbours: ', clean_neighbours1)
 
@@ -144,12 +148,18 @@ def find_neighbours(node_name):
     # print ('\n\nsystem output = ', rst2)
     rst2 = ''.join(rst2)
     all2 = rst2.split('\r')[-1]
-    neighbours = all2.split('\n')[0:-2]
+    neighbours2 = all2.split('\n')[0:-2]
+    neighbours2 = filter(lambda x: '"' not in x, neighbours2)
     def g (x): return x.split(' ')[0]
-    clean_neighbours2 = filter(lambda x: '"' not in x, map(g, neighbours))
+    # clean_neighbours2 = filter(lambda x: '"' not in x, map(g, neighbours2))
+    # predicates2 = filter(lambda x: '"' not in x, map(p, neighbours2))
+    clean_neighbours2 =  map(f, neighbours2)
+    predicates2 =  map(p, neighbours2)
     # print (clean_neighbours2)
+    rst1 = map(lambda x, y: [x,y], predicates1, clean_neighbours1)
+    rst2 = map(lambda x, y: [x,y], predicates2, clean_neighbours2)
     print ('there are ' , len(clean_neighbours1) ,'outgoing edges and ', len(clean_neighbours2), ' incoming edges')
-    return (clean_neighbours1 + clean_neighbours2)
+    return (rst1 + rst2)
     # rand_neighbour = random.choice(neighbours)
     # return (rand_neighbour.split(' ')[1])
 
@@ -163,15 +173,17 @@ def get_random_neighbour(node_name):
 
 def random_walk(node_name, steps):
     lst = []
+    lst.append(node_name)
     current_node = node_name
     for i in range(steps):
         print ('\n\n********************** ', i, ' **************************\n\n')
-        current_node = get_random_neighbour(current_node)
+        current_pair = get_random_neighbour(current_node)
+        current_node = current_pair[1]
         print('the node found is: ', current_node)
         if (current_node != '') :
-            lst.append(current_node)
+            lst += current_pair
+            current_node = current_pair[1]
         else:
-            print ('next node = ' , current_node)
             break
     return lst
 
@@ -182,6 +194,6 @@ def main():
     # print 
     first_name = 'http://wordnet-rdf.princeton.edu/wn31/100002137-n'
     lst = random_walk (first_name, 4)
-    print (lst)
+    print ('\n\nthe random walk list is therefore: \n', lst)
 
 if __name__ == "__main__": main()
