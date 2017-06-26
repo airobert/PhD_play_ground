@@ -116,3 +116,8 @@ class HDTReader:
         return self.__freq[relation]
 
 
+def main():
+    print 'I am here'
+
+
+if __name__ == "__main__": main()
