@@ -15,6 +15,7 @@ import datetime
 import dateutil.parser as dup
 from sklearn.preprocessing import normalize
 import random
+import commands
 
 from collections import Counter, defaultdict
 
@@ -116,8 +117,29 @@ class HDTReader:
         return self.__freq[relation]
 
 
-def main():
-    print 'I am here'
+# def get_neighbours():
+#     return ['a', 'b', 'c', 'd', 'e']
 
+def find_neighbour(node_name):
+    query = dirname + HDT_CMD_HDTSEARCH + ' -q \'' + node_name + ' ? ?\' ' + hdt_file
+    # print (query)
+    rst = commands.getoutput(query) # this only works for Python 2.6! 
+    # print (rst)
+    # print (len(rst))
+    # print (rst[1200])
+    rst = ''.join(rst)
+    all = rst.split('\r')[-1]
+    neighbours = all.split('\n')[0:-2]
+    rand_neighbour = random.choice(neighbours)
+    return (rand_neighbour.split(' ')[1])
+
+
+def main():
+    # foo = get_neighbours()
+    # print(random.choice(foo))
+    # print 
+    first_name = 'http://wordnet-rdf.princeton.edu/wn31/100002137-n'
+    nei = find_neighbour (first_name)
+    print (nei)
 
 if __name__ == "__main__": main()
