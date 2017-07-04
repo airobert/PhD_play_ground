@@ -28,70 +28,66 @@ class Walker:
     #     f = open(self.output, 'w') 
     #     f.write('start') 
 
-    def find_neighbours(self):
-        query1 = dirname + HDT_CMD_HDTSEARCH + ' -q ' + '\'' + self.movie + ' ? ?\' ' + self.hdtfile
+    def my_cmd(self, query, flag):
+        rst = commands.getoutput(query)
+        po = rst.split('\n')[1:-1]
+        # print po
+        # rst = ''.join(rst) 
+        # rst = rst.split('\r')[-1]
+        # print '\n\nsystem output 1 = \n' + rst
+        # print po
+        # print 'neighbours1',  neighbours1
+        if flag:
+            def p (x): return [x.split(' ')[1], x.split(' ')[2]]
+        else :
+            def p (x): return [x.split(' ')[1], x.split(' ')[0]]
+
+        result = map(p, po)
+        # print 'result = '
+        # print result
+        return result
+
+
+
+    def find_neighbours(self, current_node):
+        query1 = dirname + HDT_CMD_HDTSEARCH + ' -q ' + '\'' + current_node + ' ? ?\' ' + self.hdtfile
         # print '\nquery1 = ' + query1
-        rst = commands.getoutput(query1) # this only works for Python 2.6! 
-        # print '\n\nsystem output = ' + rst
-        # print (len(rst))
-        # print (rst[1200])
-        rst = ''.join(rst)
-        all1 = rst.split('\r')[-1]
-        neighbours1 = all1.split('\n')[0:-2]
-        neighbours1 = filter(lambda x: '"' not in x, neighbours1)
-
-        def f (x): return x.split(' ')[2]
-        def p (x): return x.split(' ')[1]
-        # nb = map(f, neighbours)
-        # print('neighbours = ', nb)
-        clean_neighbours1 =  map(f, neighbours1)
-        predicates1 =  map(p, neighbours1)
-         # for now , simply remove those that has STRINGs or other strange dataypes
-        # print ('clean neighbours: ', clean_neighbours1)
-
-
-        query2 = dirname + HDT_CMD_HDTSEARCH + ' -q' + ' \'? ? '+ self.movie +' \' ' + self.hdtfile
+        lst1 = self.my_cmd(query1, True) 
+        query2 = dirname + HDT_CMD_HDTSEARCH + ' -q' + ' \'? ? '+ current_node +' \' ' + self.hdtfile
         # print ('\n\nquery 2  = ', query2)
-        rst2 = commands.getoutput(query2) 
-        # print ('\n\nsystem output = ', rst2)
-        rst2 = ''.join(rst2)
-        all2 = rst2.split('\r')[-1]
-        neighbours2 = all2.split('\n')[0:-2]
-        neighbours2 = filter(lambda x: '"' not in x, neighbours2)
-        def g (x): return x.split(' ')[0]
-        # clean_neighbours2 = filter(lambda x: '"' not in x, map(g, neighbours2))
-        # predicates2 = filter(lambda x: '"' not in x, map(p, neighbours2))
-        clean_neighbours2 =  map(f, neighbours2)
-        predicates2 =  map(p, neighbours2)
-        # print (clean_neighbours2)
-        rst1 = map(lambda x, y: [x,y], predicates1, clean_neighbours1)
-        rst2 = map(lambda x, y: [x,y], predicates2, clean_neighbours2)
-        print 'there are ' + str(len(clean_neighbours1)) + ' outgoing edges and ' + str(len(clean_neighbours2)) + ' incoming edges'
-        return (rst1 + rst2)
+        lst2 = self.my_cmd(query2, False) 
+        print 'there are ' + str(len(lst1)) + ' outgoing edges and ' + str(len(lst2)) + ' incoming edges'
+        print (lst1 + lst2)
+        return (lst1 + lst2)
         # rand_neighbour = random.choice(neighbours)
         # return (rand_neighbour.split(' ')[1])
 
-    def get_random_neighbour(self):
-        neighbours = self.find_neighbours()
-        # print 'there are ' + str(len(neighbours)) + ' neighbours'
+    def get_random_neighbour(self, current_node):
+        neighbours = self.find_neighbours(current_node)
+        print 'there are ' + str(len(neighbours)) + ' neighbours for ' + current_node
         if len(neighbours) != 0:
             return random.choice(neighbours)
         else:
-            print 'this one has no neighbour??!!'
+            print 'error: this one has no neighbour??!!'
             return ''
 
     def random_walk(self):
+        print '**********************start random walk*************************'
         lst = []
         lst.append(self.movie)
-        current_node = self.movie
+        next_node = self.movie
         for i in range(self.depth):
-            # print '\n\n********************** ' + stself.movie + ' **************************\n\n'
-            current_pair = self.get_random_neighbour()
+            print '\n\n********************** ' + str(i) + ' **************************\n\n'
+            print 'node of this iter::::: ' + next_node
+            current_pair = self.get_random_neighbour(next_node)
+            print current_pair
             # current_node = current_pair[1]
-            # print('the node found is: ', current_node)
-            if (current_node != '') :
+            if (next_node != '') :
+                print 'update'
                 lst += current_pair
-                current_node = current_pair[1]
+                next_node = current_pair[1]
+                print('next node is: ' + next_node)
             else:
+                print 'empty?'
                 break
         return lst
